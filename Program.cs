@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using Web_Waves.Data;
 using Web_Waves.Models;
+using Web_Waves.Server.Services.Weather;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,9 @@ builder.Services.AddIdentityServer()
 
 builder.Services.AddAuthentication()
     .AddIdentityServerJwt();
+
+builder.Services.AddSingleton<WeatherServiceRepository>();
+builder.Services.AddTransient<WeatherService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
