@@ -72,7 +72,9 @@ export class FetchData extends Component {
     const token = await authService.getAccessToken();
     await fetch('weatherforecast/CancelWeatherForecastFetch', {
         method: 'POST',
-        headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
+        headers: !token ? {} : {
+            'Authorization': `Bearer ${token}`,
+            credentials: 'include'        }
     });
 }
 }
