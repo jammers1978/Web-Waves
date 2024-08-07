@@ -27,20 +27,40 @@ public class CancellationTokenManager
 
         if (cancellationTokenSourceCacheData != null)
         {
-            return cancellationTokenSourceCacheData;
-        }
-        else 
-        {
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            cancellationTokenSourceCacheData = new CancellationTokenSourceCacheData 
+            if (!cancellationTokenSourceCacheData.CancellationTokenSource.IsCancellationRequested)
+            { 
+                return cancellationTokenSourceCacheData; 
+            }
+            else
             {
-                CancellationTokenSource=cancellationTokenSource,
-                UserId=userId,
-                SessionId=sessionId
-            };
-            
-            cacheProvider.AddToCache(asyncRequestID, cancellationTokenSourceCacheData, AsyncRequestSettings.CancellationTokenCacheLifeTimeSpan);
+                cancellationTokenSourceCacheData = ConstructCacheDataAndAdd(asyncRequestID, sessionId);
+            }
         }
+        else
+        {
+            cancellationTokenSourceCacheData = ConstructCacheDataAndAdd(asyncRequestID, sessionId);
+        }
+
+        return cancellationTokenSourceCacheData;
+    }
+
+    public CancellationTokenSourceCacheData ConstructCacheDataAndAdd(string asyncRequestID, string userId = "", string sessionId = "")
+    {
+        if (string.IsNullOrEmpty(asyncRequestID))
+        {
+            throw new ArgumentException("Invalid asyncRequestID");
+        }
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        var cacheProvider = CacheProvider.Instance;
+
+        CancellationTokenSourceCacheData cancellationTokenSourceCacheData = new CancellationTokenSourceCacheData
+        {
+            CancellationTokenSource = cancellationTokenSource,
+            UserId = userId,
+            SessionId = sessionId
+        };
+
+        cacheProvider.AddToCache(asyncRequestID, cancellationTokenSourceCacheData, AsyncRequestSettings.CancellationTokenCacheLifeTimeSpan);
 
         return cancellationTokenSourceCacheData;
     }

@@ -8,9 +8,11 @@ using WebWaves.Server.AsyncRequests;
 using static WebWaves.Server.AsyncRequests.CancellationTokenManager;
 using Microsoft.AspNetCore.Authorization;
 using Web_Waves;
+using System.Security.Claims;
 
 namespace WebWaves.Server.Controllers
 {
+    [Authorize] 
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
@@ -31,7 +33,10 @@ namespace WebWaves.Server.Controllers
 
             CancellationTokenManager cancellationTokenManager = new CancellationTokenManager();
             //It's a fetch of data so start again
-            CancellationTokenSourceCacheData ctsCacheData = cancellationTokenManager.GetCancellationTokenSourceForSession("cancellationTest");
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
+
+            CancellationTokenSourceCacheData ctsCacheData = cancellationTokenManager.GetCancellationTokenSourceForSession($"weather{userId}");
+
             CancellationToken cancellationToken = ctsCacheData.CancellationTokenSource.Token;
 
             return _weatherService.GetWeatherForecast(cancellationToken);
@@ -40,12 +45,20 @@ namespace WebWaves.Server.Controllers
         [HttpPost("CancelWeatherForecastFetch", Name = "CancelWeatherForecastFetch")]
         public IActionResult CancelWeatherForecastFetch()
         {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+
             CancellationTokenManager cancellationTokenManager = new CancellationTokenManager();
-            CancellationTokenSourceCacheData ctsCacheData = cancellationTokenManager.GetCancellationTokenSourceForSession("cancellationTest");
-            CancellationTokenSource cancellationTokenSource = ctsCacheData.CancellationTokenSource;
-
-            cancellationTokenSource.Cancel();
-
+            CancellationTokenSourceCacheData ctsCacheData = cancellationTokenManager.GetCancellationTokenSourceForSession($"weather{userId}");
+            if (ctsCacheData != null)
+            {
+                CancellationTokenSource cancellationTokenSource = ctsCacheData.CancellationTokenSource;
+                cancellationTokenSource.Cancel(); 
+            }
+            else 
+            {
+                return Ok("Weather forecast fetch already cancelled.");
+            }
+            
             return Ok("Weather forecast fetch cancellation initiated.");
         }
     }
