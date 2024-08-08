@@ -6,7 +6,13 @@ using WebWaves.Server.AsyncRequests;
 
 namespace Web_Waves.Server.Services.Weather
 {
-    public class WeatherService
+    public interface IWeatherService
+    {
+        IEnumerable<WeatherForecast> GetWeatherForecast(string asyncRequestId, CancellationToken cancellationToken = default);
+        string GetWeatherSummary();
+    }
+
+    public class WeatherService : IWeatherService
     {
         private readonly WeatherServiceRepository _repository;
 
@@ -15,7 +21,7 @@ namespace Web_Waves.Server.Services.Weather
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        public IEnumerable<WeatherForecast> GetWeatherForecast(CancellationToken cancellationToken = default) 
+        public IEnumerable<WeatherForecast> GetWeatherForecast(string asyncRequestId, CancellationToken cancellationToken = default) 
         {
             //Fake long running process
             //instantiate as you need to use this in both case that there is cancellation and if not to clear token
@@ -30,7 +36,7 @@ namespace Web_Waves.Server.Services.Weather
                 if (cancellationToken.IsCancellationRequested)
                 {
                     Debug.WriteLine($"Task cancelled via cancellation token at : {count} seconds");
-                    cancellationTokenManager.ClearToken("cancellationTest");
+                    cancellationTokenManager.ClearToken(asyncRequestId);
                     return Enumerable.Range(1, 5).Select(index => new WeatherForecast
                     {
                         Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
@@ -43,7 +49,7 @@ namespace Web_Waves.Server.Services.Weather
             
             Debug.WriteLine($"Count reached {count} seconds. Stopping loop.");
 
-            cancellationTokenManager.ClearToken("cancellationTest");
+            cancellationTokenManager.ClearToken(asyncRequestId);
 
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {

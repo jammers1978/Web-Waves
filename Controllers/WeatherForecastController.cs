@@ -35,11 +35,13 @@ namespace WebWaves.Server.Controllers
             //It's a fetch of data so start again
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
-            CancellationTokenSourceCacheData ctsCacheData = cancellationTokenManager.GetCancellationTokenSourceForSession($"weather{userId}");
+            string asyncRequestId = $"weather{userId}";
+
+            CancellationTokenSourceCacheData ctsCacheData = cancellationTokenManager.GetCancellationTokenSourceForSession(asyncRequestId);
 
             CancellationToken cancellationToken = ctsCacheData.CancellationTokenSource.Token;
 
-            return _weatherService.GetWeatherForecast(cancellationToken);
+            return _weatherService.GetWeatherForecast(asyncRequestId, cancellationToken);
         }
 
         [HttpPost("CancelWeatherForecastFetch", Name = "CancelWeatherForecastFetch")]

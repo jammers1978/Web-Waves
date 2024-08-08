@@ -1,6 +1,11 @@
 ﻿namespace Web_Waves.Server.Services.Weather
 {
-    public class WeatherServiceRepository
+    public interface   IWeatherServiceRepository
+    {
+        string GetWeatherSummary();
+    }
+
+    public class WeatherServiceRepository : IWeatherServiceRepository
     {
         private static readonly string[] Summaries = new[]
        {
